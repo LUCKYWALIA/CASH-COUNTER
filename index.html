@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cash Exchange Chat</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="wrapper">
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+        <div><span class="dot"></span></div>
+      </div>
+
+    <section>
+        <div class='air air1'></div>
+        <div class='air air2'></div>
+        <div class='air air3'></div>
+        <div class='air air4'></div>
+      
+    <h6 id="title">Cash Counter</h6>
+    <button id="mode">Change Mode</button>
+    <p id="para">
+        Click <br> "Go online if you are looking for online cash" <br>
+            Click <br> "Go ofline if you are looking for ofline cash" 
+    </p>
+
+    <div style="text-align: center;">
+        <input type="text" id="username" placeholder="Enter your username">
+    </div>
+
+    <div style="text-align: center;">
+        <button id="button" onclick="goOnline()">Go Online</button>
+        <button id="button" onclick="goOffline()">Go Offline</button>
+    </div>
+
+    <div id="chatContainer">
+        <h3>Chat with matched user :  <span id="matchedUser">None</span></h3>
+        <input id="chat" type="text" placeholder="Type a message">
+        
+        <button id="send" onclick="sendMessage()">Send</button>
+
+        <h4>Messages:</h4>
+        <ul id="messages"></ul>
+    </div>
+    </section>
+
+<script src="mode.js"></script>
+
+    <script>
+        const socket = io("http://localhost:5000");
+        let username = "";
+        let matchedUser = "";
+
+        socket.on("connect", () => {
+            console.log(" Connected to server");
+        });
+
+        function goOnline() {
+            username = document.getElementById("username").value.trim();
+            if (!username) return alert("Enter a username!");
+            socket.emit("goOnline", username);
+        }
+
+        function goOffline() {
+            username = document.getElementById("username").value.trim();
+            if (!username) return alert("Enter a username!");
+            socket.emit("goOffline", username);
+        }
+
+        socket.on("matched", (matchedUsername) => {
+            matchedUser = matchedUsername;
+            document.getElementById("matchedUser").innerText = matchedUser;
+            document.getElementById("chatContainer").style.display = "block";
+        });
+
+        function sendMessage() {
+            const message = document.getElementById("chat").value.trim();
+            if (!matchedUser || !message) return alert("No match or empty message!");
+            socket.emit("sendMessage", { sender: username, receiver: matchedUser, message });
+            document.getElementById("chat").value = "";
+        }
+
+        socket.on("receiveMessage", ({ sender, message }) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<b>${sender}:</b> ${message}`;
+            document.getElementById("messages").appendChild(li);
+        });
+    </script>
+</body>
+</html>
